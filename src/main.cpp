@@ -1,8 +1,32 @@
+#define RelayPin 9
+#define UsbPower 10
+#define Transmitter 10
+#define receiver  0     // Receiver on interrupt 0 => that is pin #2
+
+  // mySwitch.send(7627473, 24);
+  // delay(1000); 
+
+  // if (mySwitch.available()) {
+    
+  //   Serial.print("Received ");
+  //   Serial.print( mySwitch.getReceivedValue() );
+  //   Serial.print(" / ");
+  //   Serial.print( mySwitch.getReceivedBitlength() );
+  //   Serial.print("bit ");
+  //   Serial.print("Protocol: ");
+  //   Serial.println( mySwitch.getReceivedProtocol() );
+
+  //   mySwitch.resetAvailable();
+  // }
+
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <String.h>
 #include <Wire.h>
 #include "RTClib.h"
+#include <RCSwitch.h>
+
+RCSwitch mySwitch = RCSwitch();
 
 RTC_DS1307 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -20,7 +44,6 @@ boolean Relay = false;
 boolean RelayOneTime = false;
 
 int oldmin = 0;
-int RelayPin = 9;
 int test = 0;
 
 long HourOn = 07, MinuteOn = 00, SecondOn = 00;
@@ -39,6 +62,10 @@ void setup()
 {
   Serial.begin(9600);
   MySerial.begin(9600);
+
+  mySwitch.enableReceive(receiver);  
+  mySwitch.enableTransmit(Transmitter);
+
   pinMode(RelayPin, OUTPUT);
   digitalWrite(RelayPin, LOW);
   if (!rtc.begin())
@@ -131,6 +158,16 @@ void loop()
       {
         Send("Wifioff");
       }
+    }
+    else if (serial_input == "Wifi on")
+    {
+      digitalWrite(RelayPin, HIGH);
+      Send("Wifion");
+    }
+    else if (serial_input == "Wifi off")
+    {
+      digitalWrite(RelayPin, LOW);
+      Send("Wifioff");
     }
     else if (serial_input == "Wifi on")
     {
@@ -245,6 +282,12 @@ void loop()
   {
     Relay = false;
     beforwifistatus = false;
+  }
+
+  if (mySwitch.available()) {
+    // output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(),mySwitch.getReceivedProtocol());
+    // mySwitch.resetAvailable();
+    // delay(50);
   }
 }
 
